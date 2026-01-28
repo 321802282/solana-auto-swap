@@ -10,6 +10,13 @@ interface LogViewerProps {
 const LogViewer = ({ logs, filter, onFilterChange, t }: LogViewerProps) => {
   const filteredLogs = logs.filter(l => filter === 'all' || l.type === filter);
 
+  const counts = {
+    all: logs.length,
+    success: logs.filter(l => l.type === 'success').length,
+    'success-get': logs.filter(l => l.type === 'success-get').length,
+    error: logs.filter(l => l.type === 'error').length,
+  };
+
   return (
     <div className="mt-4">
       <div className="flex gap-2 mb-2 text-xs">
@@ -17,12 +24,14 @@ const LogViewer = ({ logs, filter, onFilterChange, t }: LogViewerProps) => {
           <button
             key={f}
             onClick={() => onFilterChange(f)}
-            className={`px-2 py-1 rounded transition ${filter === f
+            className={`px-2 py-1 rounded transition flex items-center gap-1 ${
+              filter === f 
                 ? (f === 'success' ? 'bg-green-800' : f === 'success-get' ? 'bg-purple-800' : f === 'error' ? 'bg-red-800' : 'bg-gray-600') + ' text-white'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-              }`}
+            }`}
           >
-            {f === 'all' ? t.filterAll : f === 'success' ? t.filterSuccess : f === 'success-get' ? t.filterGet : t.filterError}
+            <span>{f === 'all' ? t.filterAll : f === 'success' ? t.filterSuccess : f === 'success-get' ? t.filterGet : t.filterError}</span>
+            <span className={`px-1 rounded ${filter === f ? 'bg-black/30' : 'bg-gray-900 text-gray-500'}`}>{counts[f]}</span>
           </button>
         ))}
       </div>
