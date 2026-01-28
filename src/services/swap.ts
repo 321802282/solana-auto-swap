@@ -83,13 +83,25 @@ export const executeSwap = async ({
 
     onLog(`${t.txSuccess} ${txid.slice(0, 8)}...`, 'success', txid);
 
-    // 5. 确认
+    // 5. 确认 (改为 10 秒超时)
     try {
-      const confirmation = await connection.confirmTransaction(txid, 'confirmed');
-      if (confirmation.value.err) throw new Error(t.txConfirmFail);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const confirmation = await Promise.race([
+        connection.confirmTransaction(txid, 'confirmed'),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('TIMEOUT_10S')), 10000)
+        )
+      ]) as any;
+
+      clearTimeout(timeoutId);
+
+      if (confirmation.value?.err) throw new Error(t.txConfirmFail);
       onLog(`${t.txGet} ${outAmountUi.toFixed(6)} ${t.txGetSuffix}`, 'success-get');
     } catch (e: any) {
-      onLog(`${t.txTimeout} ${e?.message || String(e)}`, 'error');
+      const msg = e.message === 'TIMEOUT_10S' ? '10s Timeout' : (e?.message || String(e));
+      onLog(`${t.txTimeout} ${msg}`, 'error');
     }
 
     return outAmountUi;
