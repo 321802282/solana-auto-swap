@@ -1,5 +1,4 @@
 import { Connection, Keypair, VersionedTransaction } from '@solana/web3.js';
-import { Buffer } from 'buffer';
 import { TOKENS } from '../constants';
 import type { LogType } from '../types';
 
@@ -71,7 +70,7 @@ export const executeSwap = async ({
     const { swapTransaction } = await swapRes.json();
 
     // 3. 本地签名
-    const swapTransactionBuf = Buffer.from(swapTransaction, 'base64');
+    const swapTransactionBuf = Uint8Array.from(atob(swapTransaction), c => c.charCodeAt(0));
     const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
     transaction.sign([signerKeypair]);
 
