@@ -1,5 +1,7 @@
 # Solana Auto Volume Bot (No-Popup)
 
+**Click to try it out:** [![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://321802282.github.io/sol-auto-tx)
+
 A lightweight Solana trading bot built with Vite, React, and TypeScript. It utilizes the Jupiter V1 API to perform automated token hedging (Ping-Pong mode), designed to help users generate on-chain volume without constant manual wallet confirmations.
 
 ## 🚀 Key Features
@@ -18,7 +20,8 @@ A lightweight Solana trading bot built with Vite, React, and TypeScript. It util
 - [Node.js](https://nodejs.org/) (v18+ recommended)
 - [pnpm](https://pnpm.io/) (v8+ recommended)
 - A Solana wallet private key (Use a **Burner Wallet** with minimal funds for safety)
-- A high-quality RPC URL (Helius or QuickNode strongly recommended; public nodes fail often)
+- A high-quality RPC URL (**Free Registration:** [Helius](https://www.helius.dev/))
+- Jupiter API Key (**Free Registration:** [Jupiter Dashboard](https://portal.jup.ag/dashboard))
 
 ## 📦 Getting Started
 
