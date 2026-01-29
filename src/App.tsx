@@ -17,9 +17,11 @@ const AutoSwapBot = () => {
 
   const [inputToken, setInputToken] = useState(TOKENS.SOL);
   const [outputToken, setOutputToken] = useState(TOKENS.USDC);
-  const [amount, setAmount] = useState(DEFAULT_CONFIG.AMOUNT);
+  const [minAmount, setMinAmount] = useState(DEFAULT_CONFIG.AMOUNT);
+  const [maxAmount, setMaxAmount] = useState(Number((DEFAULT_CONFIG.AMOUNT * 1.2).toFixed(4)));
   const [tradeCount, setTradeCount] = useState(DEFAULT_CONFIG.TRADE_COUNT);
-  const [intervalMs, setIntervalMs] = useState(DEFAULT_CONFIG.INTERVAL_MS); // 交易间隔(毫秒)
+  const [minInterval, setMinInterval] = useState(DEFAULT_CONFIG.INTERVAL_MS); // 最小交易间隔(毫秒)
+  const [maxInterval, setMaxInterval] = useState(Number((DEFAULT_CONFIG.INTERVAL_MS * 1.5).toFixed(0))); // 最大交易间隔(毫秒)
   const [slippage, setSlippage] = useState(DEFAULT_CONFIG.SLIPPAGE); // %
   const [priorityFee, setPriorityFee] = useState(DEFAULT_CONFIG.PRIORITY_FEE); // SOL
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -67,7 +69,8 @@ const AutoSwapBot = () => {
       // 乒乓模式状态
       let currentInToken = inputToken;
       let currentOutToken = outputToken;
-      let nextTradeAmount = amount; // 第一笔用用户设定的金额
+      // 下一次反向交易的金额缓存
+      let nextReverseAmount = 0;
 
       while (successCount < tradeCount) {
         if (!isRunningRef.current) {
@@ -75,14 +78,15 @@ const AutoSwapBot = () => {
           break;
         }
 
-        // 每次交易前随机浮动一下金额 (仅针对第一笔，或者你想每笔都浮动也可以，但为了乒乓闭环，建议反向交易直接用上一笔的结果)
-        // 这里策略是：正向交易 (A->B) 使用用户设定金额+随机浮动；反向交易 (B->A) 使用上一笔的全部所得，确保卖光
-        let tradeAmount = nextTradeAmount;
+        // 确定本次交易金额
+        let tradeAmount: number;
 
         if (currentInToken === inputToken) {
-          // 正向交易：加一点随机浮动，防止金额完全一致
-          const randomFactor = 0.9 + (Math.random() * 0.2);
-          tradeAmount = amount * randomFactor;
+          // 正向交易：始终在 Min 和 Max 之间重新随机
+          tradeAmount = minAmount + Math.random() * (maxAmount - minAmount);
+        } else {
+          // 反向交易：使用上一次获得的全部金额 (Ping-Pong)
+          tradeAmount = nextReverseAmount;
         }
 
         const resultOutAmount = await executeSwap({
@@ -112,18 +116,25 @@ const AutoSwapBot = () => {
           currentOutToken = temp;
 
           // 下一笔的金额 = 这一笔买到的金额
-          nextTradeAmount = resultOutAmount;
+          nextReverseAmount = resultOutAmount;
 
           if (successCount < tradeCount) {
-            // 间隔时间随机浮动 ±10%
-            const randomFactor = 0.9 + (Math.random() * 0.2);
-            const waitTimeMs = Math.floor(intervalMs * randomFactor);
+            // 间隔时间在 Min 和 Max 之间随机
+            const waitTimeMs = Math.floor(minInterval + Math.random() * (maxInterval - minInterval));
 
             addLog(`${t.coolDown} ${waitTimeMs}ms...`, 'info');
             await sleep(waitTimeMs);
           }
         } else {
           addLog(t.tradeFail, 'error');
+          
+          if (currentInToken !== inputToken) {
+            addLog(t.reverseFailSkip, 'error');
+            // Force reset to Forward trade
+            currentInToken = inputToken;
+            currentOutToken = outputToken;
+          }
+
           await sleep(3000);
         }
       }
@@ -206,10 +217,25 @@ const AutoSwapBot = () => {
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="relative">
           <span className="text-xs text-gray-400 flex items-center h-5">
-            {t.amountLabel}
+            {t.minAmountLabel} / {t.maxAmountLabel}
             <HelpPopover content={t.amountHelp} />
           </span>
-          <input className="w-full bg-gray-800 p-2 rounded" type="number" value={amount} onChange={e => setAmount(Number(e.target.value))} />
+          <div className="flex gap-2">
+            <input 
+              className="w-full bg-gray-800 p-2 rounded text-sm" 
+              type="number" 
+              placeholder="Min"
+              value={minAmount} 
+              onChange={e => setMinAmount(Number(e.target.value))} 
+            />
+            <input 
+              className="w-full bg-gray-800 p-2 rounded text-sm" 
+              type="number" 
+              placeholder="Max"
+              value={maxAmount} 
+              onChange={e => setMaxAmount(Number(e.target.value))} 
+            />
+          </div>
         </div>
         <div>
           <span className="text-xs text-gray-400 flex items-center h-5">
@@ -220,10 +246,25 @@ const AutoSwapBot = () => {
         </div>
         <div>
           <span className="text-xs text-gray-400 flex items-center h-5">
-            {t.intervalLabel}
+            {t.minIntervalLabel} / {t.maxIntervalLabel}
             <HelpPopover content={t.intervalHelp} />
           </span>
-          <input className="w-full bg-gray-800 p-2 rounded" type="number" value={intervalMs} onChange={e => setIntervalMs(Number(e.target.value))} />
+          <div className="flex gap-2">
+            <input 
+              className="w-full bg-gray-800 p-2 rounded text-sm" 
+              type="number" 
+              placeholder="Min"
+              value={minInterval} 
+              onChange={e => setMinInterval(Number(e.target.value))} 
+            />
+            <input 
+              className="w-full bg-gray-800 p-2 rounded text-sm" 
+              type="number" 
+              placeholder="Max"
+              value={maxInterval} 
+              onChange={e => setMaxInterval(Number(e.target.value))} 
+            />
+          </div>
         </div>
         <div>
           <span className="text-xs text-gray-400 flex items-center h-5">

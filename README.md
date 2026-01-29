@@ -10,8 +10,11 @@ A lightweight Solana trading bot built with Vite, React, and TypeScript. It util
 - **Ping-Pong Strategy**: After a forward trade (e.g., SOL -> USDC), it automatically sells the total output back (USDC -> SOL) to maintain balance.
 - **No-Popup Signing**: Direct local signing with a private key, eliminating the need for constant wallet extension interaction.
 - **Sybil Protection**:
-  - Random amount fluctuation (±10%).
-  - Random interval fluctuation (±10%).
+  - **Random Amount Interval**: Trades execute with a random amount between your set Min and Max values.
+  - **Random Time Interval**: Delays between trades are randomized within your configured Min and Max duration.
+- **Robust Error Handling**:
+  - Auto-skip reverse trade failures to prevent loops from getting stuck.
+  - Optimized 10s confirmation timeout for faster execution.
 - **Multi-language Support**: Seamless toggle between Chinese and English UI.
 - **Decoupled Architecture**: Logic, components, constants, and types are separated for high maintainability.
 
@@ -41,8 +44,8 @@ A lightweight Solana trading bot built with Vite, React, and TypeScript. It util
 4. **Configure and Run**:
    - Enter your **RPC URL**.
    - Enter your **Private Key (Base58 format)**.
-   - Set **Amount**, **Loop Count**, and **Interval**.
-   - Click **"Start Auto-Trade"**.
+  - Set **Min/Max Amount**, **Loop Count**, and **Min/Max Interval**.
+  - Click **"Start Auto-Trade"**.
 
 ## ⚠️ Disclaimer
 

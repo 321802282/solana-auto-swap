@@ -14,9 +14,11 @@ export interface SwapConfig {
   apiKey: string;
   inputToken: string;
   outputToken: string;
-  amount: number;
+  minAmount: number;
+  maxAmount: number;
   tradeCount: number;
-  intervalMs: number;
+  minInterval: number;
+  maxInterval: number;
   slippage: number;
   priorityFee: number;
 }
