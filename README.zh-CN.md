@@ -1,6 +1,9 @@
 # Solana 全自动刷量交易机器人 (No-Popup)
 
-**点击立即在线体验：** [![在线体验](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF-%E4%BD%93%E9%AA%8C-brightgreen)](https://321802282.github.io/sol-auto-tx)
+**点击立即在线体验：** [![在线体验](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF-%E4%BD%93%E9%AA%8C-brightgreen)](https://321802282.github.io/solana-auto-swap)
+
+![演示截图](./ScreenShot_zh.png)
+
 
 这是一个基于 Vite + React + TypeScript 构建的轻量级 Solana 交易机器人。它利用 Jupiter V1 API 实现自动化代币对冲交易（Ping-Pong 模式），旨在帮助用户在不需要频繁手动确认弹窗的情况下，自动完成链上交易量。
 
