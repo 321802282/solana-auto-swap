@@ -12,5 +12,5 @@ export default defineConfig({
     }),
     nodePolyfills(),
   ],
-  base: '/sol-auto-tx/',
+  base: '/solana-auto-swap/',
 })
