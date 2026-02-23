@@ -1,3 +1,4 @@
+import { Virtuoso } from 'react-virtuoso';
 import type { LogEntry } from '../types';
 
 interface LogViewerProps {
@@ -36,18 +37,25 @@ const LogViewer = ({ logs, filter, onFilterChange, t }: LogViewerProps) => {
         ))}
       </div>
 
-      <div className="bg-black p-2 h-64 overflow-y-auto text-xs font-mono border border-gray-800 rounded">
-        {filteredLogs.map((l) => (
-          <div key={l.id} className={`mb-1 ${l.type === 'error' ? 'text-red-400' : l.type === 'success' ? 'text-green-400' : l.type === 'success-get' ? 'text-purple-400' : 'text-gray-300'}`}>
-            <span className="opacity-50">[{l.time}]</span> {l.message}
-            {l.txid && (
-              <a href={`https://solscan.io/tx/${l.txid}`} target="_blank" rel="noreferrer" className="ml-2 underline text-blue-400 hover:text-blue-300">
-                {t.viewTx}
-              </a>
+      <div className="bg-black h-64 border border-gray-800 rounded">
+        {filteredLogs.length === 0 ? (
+          <div className="text-gray-600 text-center pt-10 text-xs font-mono">{t.noLogs}</div>
+        ) : (
+          <Virtuoso
+            data={filteredLogs}
+            itemContent={(index, l) => (
+              <div className={`px-2 py-1 text-xs font-mono ${l.type === 'error' ? 'text-red-400' : l.type === 'success' ? 'text-green-400' : l.type === 'success-get' ? 'text-purple-400' : 'text-gray-300'}`}>
+                <span className="opacity-50">[{l.time}]</span> {l.message}
+                {l.txid && (
+                  <a href={`https://solscan.io/tx/${l.txid}`} target="_blank" rel="noreferrer" className="ml-2 underline text-blue-400 hover:text-blue-300">
+                    {t.viewTx}
+                  </a>
+                )}
+              </div>
             )}
-          </div>
-        ))}
-        {filteredLogs.length === 0 && <div className="text-gray-600 text-center mt-10">{t.noLogs}</div>}
+            followOutput={'auto'}
+          />
+        )}
       </div>
     </div>
   );
