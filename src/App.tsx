@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Connection, Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { TOKENS, TRANSLATIONS, DEFAULT_CONFIG } from './constants';
@@ -29,8 +29,60 @@ const AutoSwapBot = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [lang, setLang] = useState<'zh' | 'en'>('zh');
   const isRunningRef = useRef(false);
+  const hasInitConfigRef = useRef(false);
 
   const t = TRANSLATIONS[lang];
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('solana-auto-swap-config-v1');
+      if (!raw) return;
+      if (hasInitConfigRef.current) return;
+      hasInitConfigRef.current = true;
+
+      const saved = JSON.parse(raw) || {};
+      const msg = t.configRestorePrompt;
+      if (!window.confirm(msg)) return;
+
+      setLang(saved.lang || 'zh');
+      setRpcUrl(saved.rpcUrl || DEFAULT_CONFIG.RPC_URL);
+      setApiKey(saved.apiKey || '');
+      setInputToken(saved.inputToken || TOKENS.SOL);
+      setOutputToken(saved.outputToken || TOKENS.USDC);
+      setMinAmount(typeof saved.minAmount === 'number' ? saved.minAmount : DEFAULT_CONFIG.AMOUNT);
+      setMaxAmount(typeof saved.maxAmount === 'number' ? saved.maxAmount : Number((DEFAULT_CONFIG.AMOUNT * 1.2).toFixed(4)));
+      setTradeCount(typeof saved.tradeCount === 'number' ? saved.tradeCount : DEFAULT_CONFIG.TRADE_COUNT);
+      setMinInterval(typeof saved.minInterval === 'number' ? saved.minInterval : DEFAULT_CONFIG.INTERVAL_MS);
+      setMaxInterval(typeof saved.maxInterval === 'number' ? saved.maxInterval : Number((DEFAULT_CONFIG.INTERVAL_MS * 1.5).toFixed(0)));
+      setSlippage(typeof saved.slippage === 'number' ? saved.slippage : DEFAULT_CONFIG.SLIPPAGE);
+      setPriorityFee(typeof saved.priorityFee === 'number' ? saved.priorityFee : DEFAULT_CONFIG.PRIORITY_FEE);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleSaveConfig = () => {
+    try {
+      const config = {
+        rpcUrl,
+        apiKey,
+        inputToken,
+        outputToken,
+        minAmount,
+        maxAmount,
+        tradeCount,
+        minInterval,
+        maxInterval,
+        slippage,
+        priorityFee,
+        lang,
+      };
+      localStorage.setItem('solana-auto-swap-config-v1', JSON.stringify(config));
+      alert(t.saveConfigSuccess);
+    } catch {
+      alert(t.saveConfigError);
+    }
+  };
 
   const addLog = (msg: string, type: LogType = 'info', txid?: string) => {
     const time = new Date().toLocaleTimeString();
@@ -127,7 +179,7 @@ const AutoSwapBot = () => {
           }
         } else {
           addLog(t.tradeFail, 'error');
-          
+
           if (currentInToken !== inputToken) {
             addLog(t.reverseFailSkip, 'error');
             // Force reset to Forward trade
@@ -221,19 +273,19 @@ const AutoSwapBot = () => {
             <HelpPopover content={t.amountHelp} />
           </span>
           <div className="flex gap-2">
-            <input 
-              className="w-full bg-gray-800 p-2 rounded text-sm" 
-              type="number" 
+            <input
+              className="w-full bg-gray-800 p-2 rounded text-sm"
+              type="number"
               placeholder="Min"
-              value={minAmount} 
-              onChange={e => setMinAmount(Number(e.target.value))} 
+              value={minAmount}
+              onChange={e => setMinAmount(Number(e.target.value))}
             />
-            <input 
-              className="w-full bg-gray-800 p-2 rounded text-sm" 
-              type="number" 
+            <input
+              className="w-full bg-gray-800 p-2 rounded text-sm"
+              type="number"
               placeholder="Max"
-              value={maxAmount} 
-              onChange={e => setMaxAmount(Number(e.target.value))} 
+              value={maxAmount}
+              onChange={e => setMaxAmount(Number(e.target.value))}
             />
           </div>
         </div>
@@ -250,19 +302,19 @@ const AutoSwapBot = () => {
             <HelpPopover content={t.intervalHelp} />
           </span>
           <div className="flex gap-2">
-            <input 
-              className="w-full bg-gray-800 p-2 rounded text-sm" 
-              type="number" 
+            <input
+              className="w-full bg-gray-800 p-2 rounded text-sm"
+              type="number"
               placeholder="Min"
-              value={minInterval} 
-              onChange={e => setMinInterval(Number(e.target.value))} 
+              value={minInterval}
+              onChange={e => setMinInterval(Number(e.target.value))}
             />
-            <input 
-              className="w-full bg-gray-800 p-2 rounded text-sm" 
-              type="number" 
+            <input
+              className="w-full bg-gray-800 p-2 rounded text-sm"
+              type="number"
               placeholder="Max"
-              value={maxInterval} 
-              onChange={e => setMaxInterval(Number(e.target.value))} 
+              value={maxInterval}
+              onChange={e => setMaxInterval(Number(e.target.value))}
             />
           </div>
         </div>
@@ -280,14 +332,28 @@ const AutoSwapBot = () => {
           </span>
           <input className="w-full bg-gray-800 p-2 rounded" type="number" value={priorityFee} onChange={e => setPriorityFee(Number(e.target.value))} />
         </div>
+        <div>
+          <span className="text-xs text-gray-400 flex items-center h-5">
+            {t.saveConfigBtn}
+            <HelpPopover content={t.saveConfigHelp} />
+          </span>
+          <button
+            type="button"
+            onClick={handleSaveConfig}
+            className="px-3 py-2 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 hover:bg-gray-700"
+          >
+            {t.saveConfigBtn}
+          </button>
+        </div>
       </div>
-
-      <button
-        onClick={isRunning ? stopBot : startBot}
-        className={`w-full py-3 font-bold rounded ${isRunning ? 'bg-red-600 hover:bg-red-500' : 'bg-purple-600 hover:bg-purple-500'}`}
-      >
-        {isRunning ? t.stopBtn : t.startBtn}
-      </button>
+      <div className="flex gap-2 mb-2">
+        <button
+          onClick={isRunning ? stopBot : startBot}
+          className={`flex-1 py-3 font-bold rounded ${isRunning ? 'bg-red-600 hover:bg-red-500' : 'bg-purple-600 hover:bg-purple-500'}`}
+        >
+          {isRunning ? t.stopBtn : t.startBtn}
+        </button>
+      </div>
 
       <LogViewer
         logs={logs}

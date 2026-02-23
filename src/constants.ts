@@ -52,6 +52,11 @@ export const TRANSLATIONS = {
       intervalHelp: '两次交易之间的等待时间将在"最小间隔"和"最大间隔"之间随机取值，模拟真实用户行为。',
       slippageHelp: '允许的最大价格偏差。如果实际成交价超过此偏差，交易将被取消以保护您的资金。建议设置在 0.5% - 1.0% 之间。',
       priorityFeeHelp: '支付给矿工的额外费用，用于在网络拥堵时加快交易确认速度。单位为 SOL。',
+      configRestorePrompt: '检测到上次使用的脚本配置（不包含私钥），是否一键恢复？',
+      saveConfigBtn: '保存配置（不含私钥）',
+      saveConfigSuccess: '配置已保存（不包含私钥）',
+      saveConfigError: '配置保存失败，请检查浏览器存储权限',
+      saveConfigHelp: '将当前参数（RPC、代币、金额、间隔、滑点等）保存到浏览器的 localStorage，方便下次一键恢复。不会保存私钥，需要每次手动输入。',
   },
   en: {
       title: 'Solana Auto Volume Bot (No Popup)',
@@ -100,6 +105,11 @@ export const TRANSLATIONS = {
       intervalHelp: 'Wait time between trades uses a random value between "Min" and "Max" intervals.',
       slippageHelp: 'Maximum allowed price deviation. Trade will fail if price moves beyond this to protect your funds. 0.5% - 1.0% recommended.',
       priorityFeeHelp: 'Extra fee paid to validators to speed up confirmation during congestion. Unit: SOL.',
+      configRestorePrompt: 'Detected a previous script configuration (excluding private key). Restore it now?',
+      saveConfigBtn: 'Save config (no private key)',
+      saveConfigSuccess: 'Config saved (private key not stored)',
+      saveConfigError: 'Failed to save config. Please check browser storage settings',
+      saveConfigHelp: 'Save current settings (RPC, tokens, amounts, intervals, slippage, etc.) into browser localStorage for quick restore next time. Private key is NOT stored; you must paste it manually each run.',
   }
 };
 
