@@ -44,7 +44,10 @@ const LogViewer = ({ logs, filter, onFilterChange, t }: LogViewerProps) => {
           <Virtuoso
             data={filteredLogs}
             itemContent={(index, l) => (
-              <div className={`px-2 py-1 text-xs font-mono ${l.type === 'error' ? 'text-red-400' : l.type === 'success' ? 'text-green-400' : l.type === 'success-get' ? 'text-purple-400' : 'text-gray-300'}`}>
+              <div
+                data-index={index}
+                className={`px-2 py-1 text-xs font-mono ${l.type === 'error' ? 'text-red-400' : l.type === 'success' ? 'text-green-400' : l.type === 'success-get' ? 'text-purple-400' : 'text-gray-300'}`}
+              >
                 <span className="opacity-50">[{l.time}]</span> {l.message}
                 {l.txid && (
                   <a href={`https://solscan.io/tx/${l.txid}`} target="_blank" rel="noreferrer" className="ml-2 underline text-blue-400 hover:text-blue-300">
