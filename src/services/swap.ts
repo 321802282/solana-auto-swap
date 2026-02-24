@@ -1,5 +1,5 @@
 import { Connection, Keypair, VersionedTransaction } from '@solana/web3.js';
-import { TOKENS } from '../constants';
+import { TOKENS, type Translation } from '../constants';
 import type { LogType } from '../types';
 
 interface ExecuteSwapParams {
@@ -13,7 +13,7 @@ interface ExecuteSwapParams {
   slippage: number;
   apiKey: string;
   priorityFee: number;
-  t: any; // Translation object
+  t: Translation;
   onLog: (msg: string, type?: LogType, txid?: string) => void;
 }
 

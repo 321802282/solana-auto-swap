@@ -1,11 +1,12 @@
 import { Virtuoso } from 'react-virtuoso';
 import type { LogEntry } from '../types';
+import type { Translation } from '../constants';
 
 interface LogViewerProps {
   logs: LogEntry[];
   filter: 'all' | 'success' | 'error' | 'success-get';
   onFilterChange: (filter: 'all' | 'success' | 'error' | 'success-get') => void;
-  t: any;
+  t: Translation;
 }
 
 const LogViewer = ({ logs, filter, onFilterChange, t }: LogViewerProps) => {

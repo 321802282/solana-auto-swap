@@ -57,7 +57,7 @@ export const TRANSLATIONS = {
       saveConfigSuccess: '配置已保存（不包含私钥）',
       saveConfigError: '配置保存失败，请检查浏览器存储权限',
       saveConfigHelp: '将当前参数（RPC、代币、金额、间隔、滑点等）保存到浏览器的 localStorage，方便下次一键恢复。不会保存私钥，需要每次手动输入。',
-  },
+      },
   en: {
       title: 'Solana Auto Volume Bot (No Popup)',
       rpcLabel: 'RPC Node URL (Public nodes fail often, use Helius/QuickNode)',
@@ -110,8 +110,11 @@ export const TRANSLATIONS = {
       saveConfigSuccess: 'Config saved (private key not stored)',
       saveConfigError: 'Failed to save config. Please check browser storage settings',
       saveConfigHelp: 'Save current settings (RPC, tokens, amounts, intervals, slippage, etc.) into browser localStorage for quick restore next time. Private key is NOT stored; you must paste it manually each run.',
-  }
-};
+      }
+} as const;
+
+export type Lang = keyof typeof TRANSLATIONS;
+export type Translation = (typeof TRANSLATIONS)[Lang];
 
 export const DEFAULT_CONFIG = {
   RPC_URL: 'https://api.mainnet-beta.solana.com',
