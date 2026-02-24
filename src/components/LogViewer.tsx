@@ -1,4 +1,5 @@
 import { Virtuoso } from 'react-virtuoso';
+import { useMemo } from 'react';
 import type { LogEntry } from '../types';
 import type { Translation } from '../constants';
 
@@ -10,14 +11,17 @@ interface LogViewerProps {
 }
 
 const LogViewer = ({ logs, filter, onFilterChange, t }: LogViewerProps) => {
-  const filteredLogs = logs.filter(l => filter === 'all' || l.type === filter);
-
-  const counts = {
+  const counts = useMemo(() => ({
     all: logs.length,
     success: logs.filter(l => l.type === 'success').length,
     'success-get': logs.filter(l => l.type === 'success-get').length,
     error: logs.filter(l => l.type === 'error').length,
-  };
+  }), [logs]);
+
+  const filteredLogs = useMemo(
+    () => logs.filter(l => filter === 'all' || l.type === filter),
+    [logs, filter],
+  );
 
   return (
     <div className="mt-4">

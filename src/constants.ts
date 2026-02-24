@@ -57,6 +57,10 @@ export const TRANSLATIONS = {
       saveConfigSuccess: '配置已保存（不包含私钥）',
       saveConfigError: '配置保存失败，请检查浏览器存储权限',
       saveConfigHelp: '将当前参数（RPC、代币、金额、间隔、滑点等）保存到浏览器的 localStorage，方便下次一键恢复。不会保存私钥，需要每次手动输入。',
+      amountInvalid: '金额区间不合法，请检查最小/最大金额。',
+      countInvalid: '循环次数必须大于 0。',
+      intervalInvalid: '间隔区间不合法，请检查最小/最大间隔。',
+      slippageInvalid: '滑点必须大于 0。',
       },
   en: {
       title: 'Solana Auto Volume Bot (No Popup)',
@@ -110,6 +114,10 @@ export const TRANSLATIONS = {
       saveConfigSuccess: 'Config saved (private key not stored)',
       saveConfigError: 'Failed to save config. Please check browser storage settings',
       saveConfigHelp: 'Save current settings (RPC, tokens, amounts, intervals, slippage, etc.) into browser localStorage for quick restore next time. Private key is NOT stored; you must paste it manually each run.',
+      amountInvalid: 'Amount range is invalid. Please check min/max amount.',
+      countInvalid: 'Loop count must be greater than 0.',
+      intervalInvalid: 'Interval range is invalid. Please check min/max interval.',
+      slippageInvalid: 'Slippage must be greater than 0.',
       }
 } as const;
 

@@ -8,6 +8,19 @@ import { executeSwap } from '../services/swap';
 
 export type LogFilter = 'all' | 'success' | 'error' | 'success-get';
 
+const getNextTradeAmount = (
+  currentInToken: string,
+  inputToken: string,
+  minAmount: number,
+  maxAmount: number,
+  nextReverseAmount: number,
+): number => {
+  if (currentInToken === inputToken) {
+    return minAmount + Math.random() * (maxAmount - minAmount);
+  }
+  return nextReverseAmount;
+};
+
 export interface AutoSwapBotConfig {
   rpcUrl: string;
   privateKey: string;
@@ -93,13 +106,13 @@ export const useAutoSwapBot = (): UseAutoSwapBotResult => {
           break;
         }
 
-        let tradeAmount: number;
-
-        if (currentInToken === inputToken) {
-          tradeAmount = minAmount + Math.random() * (maxAmount - minAmount);
-        } else {
-          tradeAmount = nextReverseAmount;
-        }
+        const tradeAmount = getNextTradeAmount(
+          currentInToken,
+          inputToken,
+          minAmount,
+          maxAmount,
+          nextReverseAmount,
+        );
 
         const resultOutAmount = await executeSwap({
           index: successCount,

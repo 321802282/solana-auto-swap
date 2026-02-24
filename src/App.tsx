@@ -161,8 +161,9 @@ const AutoSwapBot = () => {
         <div>
           <span className="text-xs text-yellow-500 font-bold">{t.rpcLabel}</span>
           <input
-            className="w-full bg-black border border-gray-700 p-2 rounded text-sm"
+            className="w-full bg-black border border-gray-700 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
             value={rpcUrl}
+            disabled={isRunning}
             onChange={e => setRpcUrl(e.target.value)}
             placeholder="https://mainnet.helius-rpc.com/..."
           />
@@ -171,8 +172,9 @@ const AutoSwapBot = () => {
           <span className="text-xs text-red-400 font-bold">{t.privateKeyLabel}</span>
           <input
             type="password"
-            className="w-full bg-black border border-red-900 p-2 rounded text-sm"
+            className="w-full bg-black border border-red-900 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
             value={privateKey}
+            disabled={isRunning}
             onChange={e => setPrivateKey(e.target.value)}
             placeholder={t.privateKeyPlaceholder}
           />
@@ -180,8 +182,9 @@ const AutoSwapBot = () => {
         <div>
           <span className="text-xs text-gray-400">{t.apiKeyLabel}</span>
           <input
-            className="w-full bg-black border border-gray-700 p-2 rounded text-sm"
+            className="w-full bg-black border border-gray-700 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
             value={apiKey}
+            disabled={isRunning}
             onChange={e => setApiKey(e.target.value)}
             placeholder={t.apiKeyPlaceholder}
           />
@@ -190,9 +193,16 @@ const AutoSwapBot = () => {
 
       <div className="flex gap-2 mb-4 items-center">
         <select
-          className="bg-gray-800 p-2 rounded flex-1 text-white border border-gray-700"
+          className="bg-gray-800 p-2 rounded flex-1 text-white border border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
           value={inputToken}
-          onChange={e => setInputToken(e.target.value)}
+          disabled={isRunning}
+          onChange={e => {
+            const next = e.target.value;
+            setInputToken(next);
+            if (next === outputToken) {
+              setOutputToken(inputToken);
+            }
+          }}
         >
           <option value={TOKENS.SOL}>SOL</option>
           <option value={TOKENS.USDC}>USDC</option>
@@ -202,9 +212,16 @@ const AutoSwapBot = () => {
         <span className="p-2 text-gray-500">➔</span>
 
         <select
-          className="bg-gray-800 p-2 rounded flex-1 text-white border border-gray-700"
+          className="bg-gray-800 p-2 rounded flex-1 text-white border border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
           value={outputToken}
-          onChange={e => setOutputToken(e.target.value)}
+          disabled={isRunning}
+          onChange={e => {
+            const next = e.target.value;
+            setOutputToken(next);
+            if (next === inputToken) {
+              setInputToken(outputToken);
+            }
+          }}
         >
           <option value={TOKENS.SOL}>SOL</option>
           <option value={TOKENS.USDC}>USDC</option>
@@ -220,17 +237,19 @@ const AutoSwapBot = () => {
           </span>
           <div className="flex gap-2">
             <input
-              className="w-full bg-gray-800 p-2 rounded text-sm"
+              className="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
               type="number"
               placeholder="Min"
               value={minAmount}
+              disabled={isRunning}
               onChange={e => setMinAmount(parseNumberInput(e.target.value, DEFAULT_CONFIG.AMOUNT))}
             />
             <input
-              className="w-full bg-gray-800 p-2 rounded text-sm"
+              className="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
               type="number"
               placeholder="Max"
               value={maxAmount}
+              disabled={isRunning}
               onChange={e => setMaxAmount(parseNumberInput(e.target.value, Number((DEFAULT_CONFIG.AMOUNT * 1.2).toFixed(4))))}
             />
           </div>
@@ -241,9 +260,10 @@ const AutoSwapBot = () => {
             <HelpPopover content={t.countHelp} />
           </span>
           <input
-            className="w-full bg-gray-800 p-2 rounded"
+            className="w-full bg-gray-800 border border-gray-700 p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
             type="number"
             value={tradeCount}
+            disabled={isRunning}
             onChange={e => setTradeCount(parseNumberInput(e.target.value, DEFAULT_CONFIG.TRADE_COUNT))}
           />
         </div>
@@ -254,17 +274,19 @@ const AutoSwapBot = () => {
           </span>
           <div className="flex gap-2">
             <input
-              className="w-full bg-gray-800 p-2 rounded text-sm"
+              className="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
               type="number"
               placeholder="Min"
               value={minInterval}
+              disabled={isRunning}
               onChange={e => setMinInterval(parseNumberInput(e.target.value, DEFAULT_CONFIG.INTERVAL_MS))}
             />
             <input
-              className="w-full bg-gray-800 p-2 rounded text-sm"
+              className="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
               type="number"
               placeholder="Max"
               value={maxInterval}
+              disabled={isRunning}
               onChange={e => setMaxInterval(parseNumberInput(e.target.value, Number((DEFAULT_CONFIG.INTERVAL_MS * 1.5).toFixed(0))))}
             />
           </div>
@@ -275,9 +297,10 @@ const AutoSwapBot = () => {
             <HelpPopover content={t.slippageHelp} />
           </span>
           <input
-            className="w-full bg-gray-800 p-2 rounded"
+            className="w-full bg-gray-800 border border-gray-700 p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
             type="number"
             value={slippage}
+            disabled={isRunning}
             onChange={e => setSlippage(parseNumberInput(e.target.value, DEFAULT_CONFIG.SLIPPAGE))}
           />
         </div>
@@ -287,9 +310,10 @@ const AutoSwapBot = () => {
             <HelpPopover content={t.priorityFeeHelp} />
           </span>
           <input
-            className="w-full bg-gray-800 p-2 rounded"
+            className="w-full bg-gray-800 border border-gray-700 p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-900 disabled:text-gray-500"
             type="number"
             value={priorityFee}
+            disabled={isRunning}
             onChange={e => setPriorityFee(parseNumberInput(e.target.value, DEFAULT_CONFIG.PRIORITY_FEE))}
           />
         </div>
