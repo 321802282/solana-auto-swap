@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Connection, Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { TOKENS } from '../constants';
+import type { Translation } from '../constants';
 import type { LogEntry, LogType } from '../types';
 import { sleep } from '../utils';
 import { executeSwap } from '../services/swap';
@@ -21,7 +21,7 @@ export interface AutoSwapBotConfig {
   maxInterval: number;
   slippage: number;
   priorityFee: number;
-  t: any;
+  t: Translation;
 }
 
 export interface UseAutoSwapBotResult {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { TOKENS, TRANSLATIONS, DEFAULT_CONFIG } from './constants';
+import { TOKENS, TRANSLATIONS, DEFAULT_CONFIG, type Lang } from './constants';
+import type { SwapConfig } from './types';
 import HelpPopover from './components/HelpPopover';
 import LogViewer from './components/LogViewer';
 import { useAutoSwapBot } from './hooks/useAutoSwapBot';
@@ -20,7 +21,7 @@ const AutoSwapBot = () => {
   const [maxInterval, setMaxInterval] = useState(Number((DEFAULT_CONFIG.INTERVAL_MS * 1.5).toFixed(0))); // 最大交易间隔(毫秒)
   const [slippage, setSlippage] = useState(DEFAULT_CONFIG.SLIPPAGE); // %
   const [priorityFee, setPriorityFee] = useState(DEFAULT_CONFIG.PRIORITY_FEE); // SOL
-  const [lang, setLang] = useState<'zh' | 'en'>('zh');
+  const [lang, setLang] = useState<Lang>('zh');
   const hasInitConfigRef = useRef(false);
 
   const {
@@ -41,7 +42,7 @@ const AutoSwapBot = () => {
       if (hasInitConfigRef.current) return;
       hasInitConfigRef.current = true;
 
-      const saved = JSON.parse(raw) || {};
+      const saved = (JSON.parse(raw) || {}) as Partial<SwapConfig & { lang: Lang }>;
       const msg = t.configRestorePrompt;
       if (!window.confirm(msg)) return;
 
