@@ -1,12 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
-import { Connection, Keypair } from '@solana/web3.js';
-import bs58 from 'bs58';
+import { useState, useEffect, useRef } from 'react';
 import { TOKENS, TRANSLATIONS, DEFAULT_CONFIG } from './constants';
-import type { LogEntry, LogType } from './types';
-import { sleep } from './utils';
-import { executeSwap } from './services/swap';
 import HelpPopover from './components/HelpPopover';
 import LogViewer from './components/LogViewer';
+import { useAutoSwapBot } from './hooks/useAutoSwapBot';
 
 const AutoSwapBot = () => {
   // --- 配置状态 ---
@@ -24,12 +20,17 @@ const AutoSwapBot = () => {
   const [maxInterval, setMaxInterval] = useState(Number((DEFAULT_CONFIG.INTERVAL_MS * 1.5).toFixed(0))); // 最大交易间隔(毫秒)
   const [slippage, setSlippage] = useState(DEFAULT_CONFIG.SLIPPAGE); // %
   const [priorityFee, setPriorityFee] = useState(DEFAULT_CONFIG.PRIORITY_FEE); // SOL
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [logFilter, setLogFilter] = useState<'all' | 'success' | 'error' | 'success-get'>('all');
-  const [isRunning, setIsRunning] = useState(false);
   const [lang, setLang] = useState<'zh' | 'en'>('zh');
-  const isRunningRef = useRef(false);
   const hasInitConfigRef = useRef(false);
+
+  const {
+    logs,
+    logFilter,
+    setLogFilter,
+    isRunning,
+    startBot,
+    stopBot,
+  } = useAutoSwapBot();
 
   const t = TRANSLATIONS[lang];
 
@@ -82,121 +83,6 @@ const AutoSwapBot = () => {
     } catch {
       alert(t.saveConfigError);
     }
-  };
-
-  const addLog = (msg: string, type: LogType = 'info', txid?: string) => {
-    const time = new Date().toLocaleTimeString();
-    setLogs(prev => [{ id: Date.now() + Math.random(), time, type, message: msg, txid }, ...prev]);
-  };
-
-  const stopBot = () => {
-    isRunningRef.current = false;
-    setIsRunning(false);
-    addLog(t.userStop, 'info');
-  };
-
-  const startBot = async () => {
-    if (!privateKey) return alert(t.privateKeyError);
-    if (rpcUrl.includes("api.mainnet-beta")) alert(t.publicRpcWarning);
-
-    setIsRunning(true);
-    isRunningRef.current = true;
-    setLogs([]);
-
-    try {
-      const connection = new Connection(rpcUrl, 'confirmed');
-
-      let secretKey;
-      try {
-        secretKey = bs58.decode(privateKey);
-      } catch (e) {
-        return alert(t.privateKeyFormatError);
-      }
-      const keypair = Keypair.fromSecretKey(secretKey);
-
-      addLog(`${t.scriptStart} ${keypair.publicKey.toString().slice(0, 6)}...`, 'info');
-
-      let successCount = 0;
-
-      // 乒乓模式状态
-      let currentInToken = inputToken;
-      let currentOutToken = outputToken;
-      // 下一次反向交易的金额缓存
-      let nextReverseAmount = 0;
-
-      while (successCount < tradeCount) {
-        if (!isRunningRef.current) {
-          addLog(t.scriptStop, 'info');
-          break;
-        }
-
-        // 确定本次交易金额
-        let tradeAmount: number;
-
-        if (currentInToken === inputToken) {
-          // 正向交易：始终在 Min 和 Max 之间重新随机
-          tradeAmount = minAmount + Math.random() * (maxAmount - minAmount);
-        } else {
-          // 反向交易：使用上一次获得的全部金额 (Ping-Pong)
-          tradeAmount = nextReverseAmount;
-        }
-
-        const resultOutAmount = await executeSwap({
-          index: successCount,
-          tradeCount,
-          connection,
-          signerKeypair: keypair,
-          currentInput: currentInToken,
-          currentOutput: currentOutToken,
-          currentAmountUi: tradeAmount,
-          slippage,
-          apiKey,
-          priorityFee,
-          t,
-          onLog: addLog
-        });
-
-        if (!isRunningRef.current) break;
-
-        if (resultOutAmount !== null) {
-          successCount++;
-
-          // 准备下一次反向交易
-          // 交换输入输出
-          const temp = currentInToken;
-          currentInToken = currentOutToken;
-          currentOutToken = temp;
-
-          // 下一笔的金额 = 这一笔买到的金额
-          nextReverseAmount = resultOutAmount;
-
-          if (successCount < tradeCount) {
-            // 间隔时间在 Min 和 Max 之间随机
-            const waitTimeMs = Math.floor(minInterval + Math.random() * (maxInterval - minInterval));
-
-            addLog(`${t.coolDown} ${waitTimeMs}ms...`, 'info');
-            await sleep(waitTimeMs);
-          }
-        } else {
-          addLog(t.tradeFail, 'error');
-
-          if (currentInToken !== inputToken) {
-            addLog(t.reverseFailSkip, 'error');
-            // Force reset to Forward trade
-            currentInToken = inputToken;
-            currentOutToken = outputToken;
-          }
-
-          await sleep(3000);
-        }
-      }
-    } catch (e: any) {
-      addLog(`${t.fatalError} ${e?.message || String(e)}`, 'error');
-    }
-
-    setIsRunning(false);
-    isRunningRef.current = false;
-    addLog(t.taskEnd, 'info');
   };
 
   return (
@@ -348,7 +234,27 @@ const AutoSwapBot = () => {
       </div>
       <div className="flex gap-2 mb-2">
         <button
-          onClick={isRunning ? stopBot : startBot}
+          onClick={() => {
+            if (isRunning) {
+              stopBot();
+              return;
+            }
+            startBot({
+              rpcUrl,
+              privateKey,
+              apiKey,
+              inputToken,
+              outputToken,
+              minAmount,
+              maxAmount,
+              tradeCount,
+              minInterval,
+              maxInterval,
+              slippage,
+              priorityFee,
+              t,
+            });
+          }}
           className={`flex-1 py-3 font-bold rounded ${isRunning ? 'bg-red-600 hover:bg-red-500' : 'bg-purple-600 hover:bg-purple-500'}`}
         >
           {isRunning ? t.stopBtn : t.startBtn}
