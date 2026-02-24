@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { Connection, Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import type { Translation } from '../constants';
@@ -39,10 +39,13 @@ export const useAutoSwapBot = (): UseAutoSwapBotResult => {
   const [isRunning, setIsRunning] = useState(false);
   const isRunningRef = useRef(false);
 
-  const addLog = (msg: string, type: LogType = 'info', txid?: string) => {
-    const time = new Date().toLocaleTimeString();
-    setLogs(prev => [{ id: Date.now() + Math.random(), time, type, message: msg, txid }, ...prev]);
-  };
+  const addLog = useCallback(
+    (msg: string, type: LogType = 'info', txid?: string) => {
+      const time = new Date().toLocaleTimeString();
+      setLogs(prev => [{ id: Date.now() + Math.random(), time, type, message: msg, txid }, ...prev]);
+    },
+    [],
+  );
 
   const stopBot = () => {
     isRunningRef.current = false;
@@ -66,14 +69,6 @@ export const useAutoSwapBot = (): UseAutoSwapBotResult => {
       t,
     } = config;
 
-    if (!privateKey) {
-      alert(t.privateKeyError);
-      return;
-    }
-    if (rpcUrl.includes('api.mainnet-beta')) {
-      alert(t.publicRpcWarning);
-    }
-
     setIsRunning(true);
     isRunningRef.current = true;
     setLogs([]);
@@ -81,13 +76,7 @@ export const useAutoSwapBot = (): UseAutoSwapBotResult => {
     try {
       const connection = new Connection(rpcUrl, 'confirmed');
 
-      let secretKey;
-      try {
-        secretKey = bs58.decode(privateKey);
-      } catch (e) {
-        alert(t.privateKeyFormatError);
-        return;
-      }
+      const secretKey = bs58.decode(privateKey);
       const keypair = Keypair.fromSecretKey(secretKey);
 
       addLog(`${t.scriptStart} ${keypair.publicKey.toString().slice(0, 6)}...`, 'info');

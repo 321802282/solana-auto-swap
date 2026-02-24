@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import bs58 from 'bs58';
 import { TOKENS, TRANSLATIONS, DEFAULT_CONFIG, type Lang } from './constants';
 import type { SwapConfig } from './types';
 import HelpPopover from './components/HelpPopover';
@@ -86,6 +87,64 @@ const AutoSwapBot = () => {
     }
   };
 
+  const parseNumberInput = (raw: string, fallback: number): number => {
+    if (raw.trim() === '') return fallback;
+    const v = Number(raw);
+    return Number.isFinite(v) ? v : fallback;
+  };
+
+  const handleStartClick = () => {
+    if (isRunning) {
+      stopBot();
+      return;
+    }
+
+    if (!privateKey) {
+      alert(t.privateKeyError);
+      return;
+    }
+
+    try {
+      bs58.decode(privateKey);
+    } catch {
+      alert(t.privateKeyFormatError);
+      return;
+    }
+
+    if (minAmount <= 0 || maxAmount <= 0 || minAmount > maxAmount) {
+      alert(t.amountInvalid);
+      return;
+    }
+    if (tradeCount <= 0) {
+      alert(t.countInvalid);
+      return;
+    }
+    if (minInterval <= 0 || maxInterval <= 0 || minInterval > maxInterval) {
+      alert(t.intervalInvalid);
+      return;
+    }
+    if (slippage <= 0) {
+      alert(t.slippageInvalid);
+      return;
+    }
+
+    startBot({
+      rpcUrl,
+      privateKey,
+      apiKey,
+      inputToken,
+      outputToken,
+      minAmount,
+      maxAmount,
+      tradeCount,
+      minInterval,
+      maxInterval,
+      slippage,
+      priorityFee,
+      t,
+    });
+  };
+
   return (
     <div className="p-6 bg-gray-900 text-white max-w-2xl mx-auto rounded-lg font-sans">
       <div className="flex justify-between items-center mb-4">
@@ -165,14 +224,14 @@ const AutoSwapBot = () => {
               type="number"
               placeholder="Min"
               value={minAmount}
-              onChange={e => setMinAmount(Number(e.target.value))}
+              onChange={e => setMinAmount(parseNumberInput(e.target.value, DEFAULT_CONFIG.AMOUNT))}
             />
             <input
               className="w-full bg-gray-800 p-2 rounded text-sm"
               type="number"
               placeholder="Max"
               value={maxAmount}
-              onChange={e => setMaxAmount(Number(e.target.value))}
+              onChange={e => setMaxAmount(parseNumberInput(e.target.value, Number((DEFAULT_CONFIG.AMOUNT * 1.2).toFixed(4))))}
             />
           </div>
         </div>
@@ -181,7 +240,12 @@ const AutoSwapBot = () => {
             {t.countLabel}
             <HelpPopover content={t.countHelp} />
           </span>
-          <input className="w-full bg-gray-800 p-2 rounded" type="number" value={tradeCount} onChange={e => setTradeCount(Number(e.target.value))} />
+          <input
+            className="w-full bg-gray-800 p-2 rounded"
+            type="number"
+            value={tradeCount}
+            onChange={e => setTradeCount(parseNumberInput(e.target.value, DEFAULT_CONFIG.TRADE_COUNT))}
+          />
         </div>
         <div>
           <span className="text-xs text-gray-400 flex items-center h-5">
@@ -194,14 +258,14 @@ const AutoSwapBot = () => {
               type="number"
               placeholder="Min"
               value={minInterval}
-              onChange={e => setMinInterval(Number(e.target.value))}
+              onChange={e => setMinInterval(parseNumberInput(e.target.value, DEFAULT_CONFIG.INTERVAL_MS))}
             />
             <input
               className="w-full bg-gray-800 p-2 rounded text-sm"
               type="number"
               placeholder="Max"
               value={maxInterval}
-              onChange={e => setMaxInterval(Number(e.target.value))}
+              onChange={e => setMaxInterval(parseNumberInput(e.target.value, Number((DEFAULT_CONFIG.INTERVAL_MS * 1.5).toFixed(0))))}
             />
           </div>
         </div>
@@ -210,14 +274,24 @@ const AutoSwapBot = () => {
             {t.slippageLabel}
             <HelpPopover content={t.slippageHelp} />
           </span>
-          <input className="w-full bg-gray-800 p-2 rounded" type="number" value={slippage} onChange={e => setSlippage(Number(e.target.value))} />
+          <input
+            className="w-full bg-gray-800 p-2 rounded"
+            type="number"
+            value={slippage}
+            onChange={e => setSlippage(parseNumberInput(e.target.value, DEFAULT_CONFIG.SLIPPAGE))}
+          />
         </div>
         <div>
           <span className="text-xs text-gray-400 flex items-center h-5">
             {t.priorityFeeLabel}
             <HelpPopover content={t.priorityFeeHelp} />
           </span>
-          <input className="w-full bg-gray-800 p-2 rounded" type="number" value={priorityFee} onChange={e => setPriorityFee(Number(e.target.value))} />
+          <input
+            className="w-full bg-gray-800 p-2 rounded"
+            type="number"
+            value={priorityFee}
+            onChange={e => setPriorityFee(parseNumberInput(e.target.value, DEFAULT_CONFIG.PRIORITY_FEE))}
+          />
         </div>
         <div>
           <span className="text-xs text-gray-400 flex items-center h-5">
@@ -235,27 +309,7 @@ const AutoSwapBot = () => {
       </div>
       <div className="flex gap-2 mb-2">
         <button
-          onClick={() => {
-            if (isRunning) {
-              stopBot();
-              return;
-            }
-            startBot({
-              rpcUrl,
-              privateKey,
-              apiKey,
-              inputToken,
-              outputToken,
-              minAmount,
-              maxAmount,
-              tradeCount,
-              minInterval,
-              maxInterval,
-              slippage,
-              priorityFee,
-              t,
-            });
-          }}
+          onClick={handleStartClick}
           className={`flex-1 py-3 font-bold rounded ${isRunning ? 'bg-red-600 hover:bg-red-500' : 'bg-purple-600 hover:bg-purple-500'}`}
         >
           {isRunning ? t.stopBtn : t.startBtn}
